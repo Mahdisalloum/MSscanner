@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Vulnerability Scanner</title>
+    <style>
+        /* Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('hr-recruitment-business-concept-free-photo.jpg');
+            background-size: cover; /* This makes sure the image covers the entire background */
+            background-repeat: no-repeat; /* Prevents the image from repeating */
+            background-attachment: fixed; /* Keeps the background fixed during scrolling */
+            background-position: center; /* Centers the image */
+            color: #000000; /* Sets a default text color to ensure readability */
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 100px;
+            margin-bottom: 30px;
+            color: #000000;
+        }
+        h3 {
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 30px;
+            color: #000000;
+        }
+
+        nav {
+            background-color: white;
+            padding: 10px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 20px;
+        }
+
+        nav ul li:last-child {
+            margin-right: 0;
+        }
+
+        nav ul li a {
+            display: inline-block;
+            padding: 10px 20px;
+            color: black;
+            text-decoration: none;
+        }
+
+        nav ul li a:hover {
+            background-color: #f0f0f0;
+        }
+
+        #scanForm {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #urlInput {
+            width: calc(50% - 42px);
+            padding: 10px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #000;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        #scanTypeSelect {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        #scanResults {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .scanResult {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .scanResult h2 {
+            margin-top: 0;
+            color: #007bff;
+        }
+
+        .scanResult pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .result-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .result-line {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.result-line span {
+    flex: 1;
+}
+
+.result-separator {
+    width: 100%;
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 0 10px;
+}
+
+.vulnerable-label {
+    color: red;
+    font-weight: bold;
+}
+
+.not-vulnerable-label {
+    color: green;
+    font-weight: bold;
+}
+
+
+
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 60px;
+            height: 60px;
+            -webkit-animation: spin 2s linear infinite;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+            margin-top: 20px;
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .scanResult {
+            display: none;
+        }
+
+        .scanResult.show {
+            display: block;
+        }
+
+        .severity {
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 0.5em;
+        }
+
+        .severity.critical {
+            color: red;
+            border-left-color: red;
+        }
+
+        .severity.high {
+            color: orange;
+            border-left-color: orange;
+        }
+
+        .severity.medium {
+            color: yellow;
+            border-left-color: yellow;
+        }
+
+        .severity.low {
+            color: green;
+            border-left-color: green;
+        }
+        
+
+    </style>
+</head>
+<body>
+
+<nav>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <h1>MSscanner</h1>
+    <h3>Scan for enhanced web security</h3>
+    <form id="scanForm">
+        <label for="urlInput">Enter the target URL:</label>
+        <input type="text" id="urlInput" placeholder="https://example.com">
+        <select id="scanTypeSelect">
+            <option value="full">Full Scan</option>
+            <option value="xss">Scan for XSS</option>
+            <option value="sql-injection">Scan for SQL Injection</option>
+            <option value="csrf">Scan for CSRF</option>
+        </select>
+        <button type="button" onclick="scan()">Scan</button>
+    </form>
+
+    <div id="scanResults">
+    <div id="xssResults" class="scanResult">
+        <h2>XSS Scan Results</h2>
+        <div id="xssScanResult" class="scanResultContent"></div>
+    </div>
+    <div id="sqlInjectionResults" class="scanResult">
+        <h2>SQL Injection Scan Results</h2>
+        <div id="sqlInjectionScanResult" class="scanResultContent"></div>
+    </div>
+    <div id="csrfResults" class="scanResult">
+        <h2>CSRF Scan Results</h2>
+        <div id="csrfScanResult" class="scanResultContent"></div>
+    </div>
+</div>
+
+</div>
+
+<script>
+function scanForXSS(url) {
+    return fetch('/scan/xss', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url: url })
+    })
+    .then(response => response.json())
+    .then(data => {
+        let result = data[url];
+        let scanResultContent = document.getElementById("xssScanResult");
+        result.split('\n').forEach(line => {
+            let resultLine = document.createElement('div');
+            resultLine.classList.add('result-line');
+            
+            let backendResult = document.createElement('span');
+            backendResult.textContent = line;
+            
+            let status = document.createElement('span');
+            if (line.includes("[+]")) {
+                status.textContent = ' Vulnerable';
+                status.classList.add('vulnerable-label');
+            } else if (line.includes("[-]")) {
+                status.textContent = ' Not Vulnerable';
+                status.classList.add('not-vulnerable-label');
+            }
+            
+            resultLine.appendChild(backendResult);
+            if (line.includes("[+]") || line.includes("[-]")) {
+                let separator = document.createElement('hr');
+                separator.classList.add('result-separator');
+                resultLine.appendChild(separator);
+            }
+            resultLine.appendChild(status);
+            scanResultContent.appendChild(resultLine);
+        });
+        document.getElementById("xssResults").classList.add("show");
+        fetchCrawledResults(url, 'xss');
+        return !result.includes("vulnerability found at:");
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        return false;
+    });
+}
+
+function scanForSQLInjection(url) {
+    return fetch('/scan/sql-injection', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url: url })
+    })
+    .then(response => response.json())
+    .then(data => {
+        let result = data[url];
+        let scanResultContent = document.getElementById("sqlInjectionScanResult");
+        result.split('\n').forEach(line => {
+            let resultLine = document.createElement('div');
+            resultLine.classList.add('result-line');
+            
+            let backendResult = document.createElement('span');
+            backendResult.textContent = line;
+            
+            let status = document.createElement('span');
+            if (line.includes("[+]")) {
+                status.textContent = ' Vulnerable';
+                status.classList.add('vulnerable-label');
+            } else if (line.includes("[-]")) {
+                status.textContent = ' Not Vulnerable';
+                status.classList.add('not-vulnerable-label');
+            }
+            
+            resultLine.appendChild(backendResult);
+            if (line.includes("[+]") || line.includes("[-]")) {
+                let separator = document.createElement('hr');
+                separator.classList.add('result-separator');
+                resultLine.appendChild(separator);
+            }
+            resultLine.appendChild(status);
+            scanResultContent.appendChild(resultLine);
+        });
+        document.getElementById("sqlInjectionResults").classList.add("show");
+        fetchCrawledResults(url, 'sql-injection');
+        return !result.includes("vulnerability found at:");
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        return false;
+    });
+}
+
+function scanForCSRF(url) {
+    return fetch('/scan/csrf', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url: url })
+    })
+    .then(response => response.json())
+    .then(data => {
+        let result = data[url];
+        let scanResultContent = document.getElementById("csrfScanResult");
+        result.split('\n').forEach(line => {
+            let resultLine = document.createElement('div');
+            resultLine.classList.add('result-line');
+            
+            let backendResult = document.createElement('span');
+            backendResult.textContent = line;
+            
+            let status = document.createElement('span');
+            if (line.includes("No CSRF protection mechanism detected.")) {
+                status.textContent = ' Not Vulnerable';
+                status.classList.add('not-vulnerable-label');
+            } else if (line.includes("vulnerability found at:")) {
+                status.textContent = ' Vulnerable';
+                status.classList.add('vulnerable-label');
+            }
+            
+            resultLine.appendChild(backendResult);
+            if (line.includes("No CSRF protection mechanism detected.") || line.includes("vulnerability found at:")) {
+                let separator = document.createElement('hr');
+                separator.classList.add('result-separator');
+                resultLine.appendChild(separator);
+            }
+            resultLine.appendChild(status);
+            scanResultContent.appendChild(resultLine);
+        });
+        document.getElementById("csrfResults").classList.add("show");
+        fetchCrawledResults(url, 'csrf');
+        return !result.includes("vulnerability found at:");
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        return false;
+    });
+}
+
+function fetchCrawledResults(url, scanType) {
+    fetch(`/crawl-results?url=${encodeURIComponent(url)}&scanType=${scanType}`)
+    .then(response => response.text())
+    .then(data => {
+        let scanResultContent;
+        switch (scanType) {
+            case 'xss':
+                scanResultContent = document.getElementById("xssScanResult");
+                break;
+            case 'sql-injection':
+                scanResultContent = document.getElementById("sqlInjectionScanResult");
+                break;
+            case 'csrf':
+                scanResultContent = document.getElementById("csrfScanResult");
+                break;
+            default:
+                console.error("Invalid scan type");
+                return;
+        }
+
+        let crawledResultsHeader = document.createElement('div');
+        crawledResultsHeader.classList.add('result-header');
+        crawledResultsHeader.textContent = `Crawled Results for ${url}:`;
+        scanResultContent.appendChild(crawledResultsHeader);
+
+        data.split('\n').forEach(line => {
+            let resultLine = document.createElement('div');
+            resultLine.classList.add('result-line');
+            
+            let backendResult = document.createElement('span');
+            backendResult.textContent = line;
+            
+            let status = document.createElement('span');
+            if (line.includes("[+]")) {
+                status.textContent = ' Vulnerable';
+                status.classList.add('vulnerable-label');
+            } else if (line.includes("[-]")) {
+                status.textContent = ' Not Vulnerable';
+                status.classList.add('not-vulnerable-label');
+            }
+            
+            resultLine.appendChild(backendResult);
+            if (line.includes("[+]") || line.includes("[-]")) {
+                let separator = document.createElement('hr');
+                separator.classList.add('result-separator');
+                resultLine.appendChild(separator);
+            }
+            resultLine.appendChild(status);
+            scanResultContent.appendChild(resultLine);
+        });
+    })
+    .catch(error => console.error('Error fetching crawled results:', error));
+}
+function scan() {
+    var url = document.getElementById("urlInput").value;
+    var scanType = document.getElementById("scanTypeSelect").value;
+
+    let promises = [];
+    if (scanType === 'full') {
+        promises.push(scanForXSS(url));
+        promises.push(scanForSQLInjection(url));
+        promises.push(scanForCSRF(url));
+    } else {
+        switch (scanType) {
+            case 'xss':
+                promises.push(scanForXSS(url));
+                break;
+            case 'sql-injection':
+                promises.push(scanForSQLInjection(url));
+                break;
+            case 'csrf':
+                promises.push(scanForCSRF(url));
+                break;
+            default:
+                console.error("Invalid scan type");
+        }
+    }
+
+    Promise.all(promises).then(results => {
+        if (results.every(res => res === true)) {
+            document.getElementById("notVulnerableResults").classList.add("show");
+        }
+    });
+}
+
+
+</script>
+
+</body>
+</html>
